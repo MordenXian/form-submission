@@ -3,245 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>信息提交表单</title>
-    <!-- 在 <title> 标签下方添加 -->
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <!-- 引入 Supabase JS 库 -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <title>Supabase 测试</title>
     <style>
-        body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f8f9fa;
-        }
-        .container {
-            background: white;
-            border-radius: 10px;
-            padding: 25px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            color: #333;
-            text-align: center;
-            margin-bottom: 25px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: #555;
-        }
-        input, textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 16px;
-            box-sizing: border-box;
-            transition: border-color 0.3s;
-        }
-        input:focus, textarea:focus {
-            border-color: #4285f4;
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
-        }
-        textarea {
-            height: 100px;
-            resize: vertical;
-        }
-        button {
-            background-color: #4285f4;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            font-size: 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            width: 100%;
-            font-weight: 500;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #3367d6;
-        }
-        button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-        #result {
-            margin-top: 25px;
-            padding: 20px;
-            background-color: #e8f4f8;
-            border-radius: 6px;
-            border-left: 4px solid #4285f4;
-            display: none;
-        }
-        #result h2 {
-            margin-top: 0;
-            color: #333;
-        }
-        .order-info {
-            background: white;
-            padding: 15px;
-            border-radius: 6px;
-            margin: 15px 0;
-            border: 1px solid #eee;
-        }
-        .loader {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-            margin-right: 10px;
-            vertical-align: middle;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        .error {
-            background-color: #ffebee;
-            border-left: 4px solid #f44336;
-            color: #d32f2f;
-        }
+        body { font-family: Arial, sans-serif; max-width: 500px; margin: 20px auto; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        input, textarea { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; }
+        button { background: #4285f4; color: white; border: none; padding: 10px 15px; cursor: pointer; width: 100%; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        #result { margin-top: 15px; padding: 10px; border-radius: 4px; }
+        .success { background: #e8f5e9; border-left: 4px solid #4caf50; }
+        .error { background: #ffebee; border-left: 4px solid #f44336; }
+        #initStatus { margin-bottom: 15px; padding: 10px; }
     </style>
+    <!-- 直接加载 Supabase 客户端库 -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>信息提交表单</h1>
+    <h2>Supabase 数据测试</h2>
+    <div id="initStatus">正在初始化 Supabase 连接...</div>
 
-        <form id="infoForm">
-            <div class="form-group">
-                <label for="name">姓名：</label>
-                <input type="text" id="name" name="name" required placeholder="请输入您的姓名">
-            </div>
-
-            <div class="form-group">
-                <label for="phone">电话：</label>
-                <input type="tel" id="phone" name="phone" required placeholder="请输入您的手机号码">
-            </div>
-
-            <div class="form-group">
-                <label for="address">地址：</label>
-                <textarea id="address" name="address" required placeholder="请输入详细地址"></textarea>
-            </div>
-
-            <button type="submit" id="submitBtn">
-                <span id="buttonText">提交信息</span>
-            </button>
-        </form>
-
-        <div id="result">
-            <!-- 提交结果将在这里显示 -->
+    <form id="infoForm" style="display:none;">
+        <div class="form-group">
+            <label for="name">姓名</label>
+            <input type="text" id="name" required>
         </div>
-    </div>
+        <div class="form-group">
+            <label for="phone">电话</label>
+            <input type="tel" id="phone" required>
+        </div>
+        <div class="form-group">
+            <label for="address">地址</label>
+            <textarea id="address" required></textarea>
+        </div>
+        <button type="submit" id="submitBtn">提交</button>
+    </form>
+    <div id="result"></div>
 
     <script>
-        // =====================
-        // 配置你的Supabase项目
-        // =====================
-        // 替换成你的实际Supabase项目URL和Anon Key
+        // Supabase 配置
         const SUPABASE_URL = 'https://mtsaxkqjlaiizhhvmizr.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10c2F4a3FqbGFpaXpoaHZtaXpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwODI5MTgsImV4cCI6MjA3MDY1ODkxOH0.EytNoJxOuryMgmfKAXEsEtJ16uwIXuLq0ZsvYgN6Ztk';
 
-        // 初始化Supabase客户端
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // 全局 Supabase 客户端变量
+        let supabaseClient;
+        let isInitialized = false;
 
-        // 获取DOM元素
-        const form = document.getElementById('infoForm');
-        const resultDiv = document.getElementById('result');
-        const submitBtn = document.getElementById('submitBtn');
-        const buttonText = document.getElementById('buttonText');
+        // 初始化函数
+        function initSupabase() {
+            try {
+                // 检查 supabase 对象是否已加载
+                if (typeof supabase === 'undefined') {
+                    throw new Error('Supabase 库未加载成功');
+                }
+
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                isInitialized = true;
+
+                document.getElementById('initStatus').textContent = 'Supabase 已连接';
+                document.getElementById('infoForm').style.display = 'block';
+                console.log('Supabase 初始化完成');
+            } catch (error) {
+                document.getElementById('initStatus').textContent = '初始化失败: ' + error.message;
+                document.getElementById('initStatus').className = 'error';
+                console.error('初始化错误:', error);
+            }
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 延迟一点确保 supabase 脚本已加载
+            setTimeout(initSupabase, 100);
+        });
 
         // 表单提交处理
-        form.addEventListener('submit', async (e) => {
+        document.getElementById('infoForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            // 禁用提交按钮防止重复提交
-            submitBtn.disabled = true;
-            buttonText.innerHTML = '<div class="loader"></div>提交中...';
+            if (!isInitialized) {
+                showResult('Supabase 未初始化完成，请刷新页面重试', 'error');
+                return;
+            }
 
-            // 获取表单值
-            const name = document.getElementById('name').value.trim();
-            const phone = document.getElementById('phone').value.trim();
-            const address = document.getElementById('address').value.trim();
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '提交中...';
+
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            const address = document.getElementById('address').value;
 
             try {
-                // 插入数据到Supabase
-                const { data, error } = await supabase
+                // 插入数据到 Supabase
+                const { data, error } = await supabaseClient
                     .from('orders')
-                    .insert([
-                        {
-                            name: name,
-                            phone: phone,
-                            address: address
-                        }
-                    ])
-                    .select();  // 添加select()以返回插入的数据
+                    .insert([{ name, phone, address }])
+                    .select();
 
-                if (error) throw error;
+                if (error) {
+                    console.error('Supabase 错误:', error);
+                    throw new Error(error.message);
+                }
 
-                // 获取返回的数据（包含生成的ID）
-                const orderData = data[0];
+                showResult(`数据提交成功！ID: ${data[0].id}`, 'success');
+                document.getElementById('infoForm').reset();
 
-                // 显示结果
-                showSuccessResult(name, phone, address, orderData.id);
-
-                // 清空表单
-                form.reset();
-
+                // 调试输出
+                console.log('提交成功，返回数据:', data);
             } catch (error) {
-                console.error('提交出错:', error);
-                showErrorResult('提交失败: ' + error.message);
+                console.error('提交错误:', error);
+                showResult('提交失败: ' + error.message, 'error');
             } finally {
-                // 重新启用提交按钮
                 submitBtn.disabled = false;
-                buttonText.textContent = '提交信息';
+                submitBtn.textContent = '提交';
             }
         });
 
-        // 显示成功结果
-        function showSuccessResult(name, phone, address, orderId) {
+        // 显示结果
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = message;
+            resultDiv.className = type;
             resultDiv.style.display = 'block';
-            resultDiv.className = ''; // 移除错误样式
-            resultDiv.innerHTML = `
-                <h2>✅ 提交成功！</h2>
-                <div class="order-info">
-                    <p><strong>单号：</strong> ${orderId}</p>
-                    <p><strong>姓名：</strong> ${name}</p>
-                    <p><strong>电话：</strong> ${phone}</p>
-                    <p><strong>地址：</strong> ${address}</p>
-                </div>
-                <p>信息已安全存储，您可截屏保存此页面。</p>
-            `;
-
-            // 自动滚动到结果区域
-            resultDiv.scrollIntoView({ behavior: 'smooth' });
         }
-
-        // 显示错误结果
-        function showErrorResult(message) {
-            resultDiv.style.display = 'block';
-            resultDiv.className = 'error';
-            resultDiv.innerHTML = `
-                <h2>❌ 提交失败</h2>
-                <p>${message}</p>
-                <p>请检查网络连接后重试，或稍后再提交。</p>
-            `;
-        }
-    </script>
-    <script>
-    // 防止浏览器误判为纯文本
-    if(document.contentType === "text/plain") {
-      document.location.reload(true);
-    }
     </script>
 </body>
 </html>
